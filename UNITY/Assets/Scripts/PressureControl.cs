@@ -4,8 +4,8 @@ using UnityEngine;
 public class ArduinoDebugLogger : MonoBehaviour
 {
     private SerialPort serialPort;
-    public string portName = "COM5"; 
-    public int baudRate = 9600;     
+    public string portName = "COM5";
+    public int baudRate = 9600;
 
     void Start()
     {
@@ -13,46 +13,48 @@ public class ArduinoDebugLogger : MonoBehaviour
         {
             serialPort = new SerialPort(portName, baudRate)
             {
-                ReadTimeout = 10,  
-                DtrEnable = true,  
+                ReadTimeout = 10,
+                DtrEnable = true,
             };
-            serialPort.Open(); 
+            serialPort.Open();
             Debug.Log($"Connected to {portName} at {baudRate} baud.");
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"Failed to open serial port {portName}: {e.Message}");
+            Debug.LogWarning($"Failed to open serial port {portName}: {e.Message}");
         }
     }
-
-    void Update()
+   void Update()
+{
+    if (serialPort != null && serialPort.IsOpen)
     {
-        if (serialPort != null && serialPort.IsOpen)
+        try
         {
-            try
+            Debug.Log("Checking for data...");
+            if (serialPort.BytesToRead > 0)
             {
-                if (serialPort.BytesToRead > 0) 
-                {
-                    string message = serialPort.ReadLine(); 
-                    Debug.Log($"Arduino: {message}"); 
-                }
-            }
-            catch (System.TimeoutException)
-            {
-                
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"Serial read error: {e.Message}");
+                string message = serialPort.ReadLine();
+                Debug.Log($"Arduino: {message}");
             }
         }
+        catch (System.TimeoutException)
+        {
+            Debug.Log("Timeout: No data received this frame.");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Serial read error: {e.Message}");
+        }
     }
+}
+
+
 
     void OnDestroy()
     {
         if (serialPort != null && serialPort.IsOpen)
         {
-            serialPort.Close(); 
+            serialPort.Close();
         }
     }
 }

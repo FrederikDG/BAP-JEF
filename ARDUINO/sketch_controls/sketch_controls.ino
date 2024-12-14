@@ -62,8 +62,7 @@ void loop() {
 
 void activateRandomLED() {
   activeLED = random(0, 8); 
-  Serial.print("LED ");
-  Serial.print(activeLED + 1);
+
 
   digitalWrite(ledPins[activeLED], HIGH); 
   startTime = millis();                  
