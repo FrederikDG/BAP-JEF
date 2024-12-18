@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;  
 
 public class StatsController : MonoBehaviour
 {
@@ -27,15 +28,21 @@ public class StatsController : MonoBehaviour
     public Gradient pressureColorRamp;  
 
     private float currentDepth = 0f;   
+
     void Update()
     {
         
         currentDepth += speed * Time.deltaTime;
         currentDepth = Mathf.Clamp(currentDepth, 0f, maxDepth);
 
-        
         pressure += pressureIncreaseRate * Time.deltaTime;
         pressure = Mathf.Clamp(pressure, 0f, maxPressure);
+
+        
+        if (pressure >= maxPressure)
+        {
+            LoadEndScene();  
+        }
 
         
         if (speedText != null)
@@ -43,23 +50,21 @@ public class StatsController : MonoBehaviour
             speedText.text = speed.ToString("F0");
         }
 
-        
         if (pressureText != null)
         {
             pressureText.text = Mathf.FloorToInt(pressure).ToString() + "%";
         }
 
-        
         if (yPositionText != null && trackedObject != null)
         {
             float yPos = trackedObject.position.y + Ycorrection;
-            yPositionText.text = yPos.ToString("F0"); 
+            yPositionText.text = yPos.ToString("F0");
         }
 
         
         if (loweredObject != null)
         {
-            float lowering = MapRange(currentDepth + Ycorrection, 0f, maxDepth, 0f, maxLowering);
+            float lowering = MapRange(currentDepth, 0f, maxDepth, 0f, maxLowering);
             Vector3 newPosition = loweredObject.position;
             newPosition.y = -lowering; 
             loweredObject.position = newPosition;
@@ -79,21 +84,26 @@ public class StatsController : MonoBehaviour
         {
             float barWidth = MapRange(pressure, 0f, maxPressure, 0f, maxPressureBarWidth);
             Vector2 newSize = pressureBar.sizeDelta;
-            newSize.x = barWidth; 
+            newSize.x = barWidth;
             pressureBar.sizeDelta = newSize;
 
-            
             RawImage pressureBarImage = pressureBar.GetComponent<RawImage>();
             if (pressureBarImage != null)
             {
                 Color pressureColor = pressureColorRamp.Evaluate(pressure / maxPressure);
-                pressureBarImage.color = pressureColor;  
+                pressureBarImage.color = pressureColor;
             }
             else
             {
                 Debug.LogError("Pressure bar does not have a RawImage component.");
             }
         }
+    }
+
+
+    private void LoadEndScene()
+    {
+        SceneManager.LoadScene("menu_end_bad");
     }
 
     public float GetSpeed()
@@ -106,7 +116,6 @@ public class StatsController : MonoBehaviour
         return pressure;
     }
 
-    
     private float MapRange(float value, float inMin, float inMax, float outMin, float outMax)
     {
         return (value - inMin) / (inMax - inMin) * (outMax - outMin) + outMin;

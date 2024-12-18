@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Splines;
+using UnityEngine.SceneManagement;  
 
 [ExecuteInEditMode]
 public class SplineFollower : MonoBehaviour
@@ -9,6 +10,7 @@ public class SplineFollower : MonoBehaviour
     public float startPercentage = 0f;
     public StatsController statsController;
     public float speedFactor = 1f;
+
     public float GetT()
     {
         return t;
@@ -21,24 +23,29 @@ public class SplineFollower : MonoBehaviour
 
     void Update()
     {
-        if (Application.isPlaying) 
+        if (Application.isPlaying)
         {
             if (statsController != null)
             {
                 float speed = statsController.GetSpeed();
 
-                
                 t += speed * Time.deltaTime * speedFactor;
-                t = Mathf.Repeat(t, 1f); 
+                t = Mathf.Repeat(t, 1f);  
 
                 UpdatePositionAndRotation();
+
+                
+                if (t >= 0.99f)
+                {
+                    LoadNextScene();
+                }
             }
             else
             {
                 Debug.LogError("StatsController is not assigned to SplineFollower!");
             }
         }
-        else 
+        else
         {
             InitializeT();
             UpdatePositionAndRotation();
@@ -69,4 +76,11 @@ public class SplineFollower : MonoBehaviour
             Debug.LogError("SplineContainer is not assigned!");
         }
     }
-}
+
+private void LoadNextScene()
+{
+    
+    int nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
+    Debug.Log("Loading scene at index: " + nextSceneIndex);
+    SceneManager.LoadScene(nextSceneIndex);
+}}

@@ -1,64 +1,78 @@
 using UnityEngine;
 using UnityEngine.Splines;
-using System.Collections.Generic;
 
 public class FishSplineFollower : MonoBehaviour
 {
     public GameObject splineParent;  
-    public GameObject fishParent;    
+    private SplineContainer[] splineContainers;  
+    public Sprite[] fishTextures;  
     public float renderDistance = 20f;  
 
+    public float minSpeed = 1f;  
+    public float maxSpeed = 5f;  
+
+    public bool shouldOrient = true;  
+    public Vector3 additionalRotation = new Vector3(0, -90, 0);  
+
     private Camera mainCamera;
+
+    [Range(0f, 1f)]
+    public float splineUsagePercentage = 1f;  
+
+    [Range(0.1f, 3f)]
+    public float fishScale = 1f;  
 
     void Start()
     {
         mainCamera = Camera.main;  
 
-        if (splineParent != null && fishParent != null)
+        if (splineParent != null && fishTextures.Length > 0)
         {
-            SplineContainer[] splineContainers = splineParent.GetComponentsInChildren<SplineContainer>();
+            splineContainers = splineParent.GetComponentsInChildren<SplineContainer>();
 
             if (splineContainers.Length > 0)
             {
-                foreach (SplineContainer spline in splineContainers)
+                
+                int splineCountToUse = Mathf.CeilToInt(splineContainers.Length * splineUsagePercentage);
+
+                for (int i = 0; i < splineCountToUse; i++)
                 {
-                    
-                    foreach (Transform fishTransform in fishParent.transform)
+                    SplineContainer spline = splineContainers[i];
+
+                    GameObject fish = new GameObject("Fish", typeof(SpriteRenderer));
+                    fish.transform.SetParent(spline.transform);  
+                    SpriteRenderer spriteRenderer = fish.GetComponent<SpriteRenderer>();
+
+                    if (spriteRenderer != null && fishTextures.Length > 0)
                     {
-                        
-                        GameObject fish = new GameObject(fishTransform.name, typeof(SpriteRenderer));
-                        fish.transform.SetParent(spline.transform);
-
-                        
-                        SpriteRenderer spriteRenderer = fish.GetComponent<SpriteRenderer>();
-                        spriteRenderer.sprite = fishTransform.GetComponent<SpriteRenderer>().sprite;
-
-                        
-                        FishController fishController = fish.AddComponent<FishController>();
-                        fishController.currentSplineContainer = spline;
-                        fishController.speed = Random.Range(1f, 5f);  
-
-                        FishRendererVisibility fishRendererVisibility = fish.AddComponent<FishRendererVisibility>();
-                        fishRendererVisibility.renderDistance = renderDistance;  
-                        fishRendererVisibility.mainCamera = mainCamera;  
+                        spriteRenderer.sprite = fishTextures[Random.Range(0, fishTextures.Length)];
                     }
+
+                    
+                    fish.transform.localScale = Vector3.one * fishScale;
+
+                    FishController fishController = fish.AddComponent<FishController>();
+                    fishController.currentSplineContainer = spline;
+                    fishController.speed = Random.Range(minSpeed, maxSpeed);  
+                    fishController.shouldOrient = shouldOrient;  
+                    fishController.additionalRotation = additionalRotation;  
+
+                    FishRendererVisibility fishRendererVisibility = fish.AddComponent<FishRendererVisibility>();
+                    fishRendererVisibility.renderDistance = renderDistance;  
+                    fishRendererVisibility.mainCamera = mainCamera;  
                 }
             }
         }
-        else
-        {
-            Debug.LogWarning("Spline parent or fish parent is missing.");
-        }
     }
 }
-
 
 public class FishController : MonoBehaviour
 {
     public SplineContainer currentSplineContainer;  
     public float speed = 1f;
     private float progress = 0f;
-    public Vector3 additionalRotation = new Vector3(0, -90, 0); 
+    public bool shouldOrient = true;  
+    public Vector3 additionalRotation = new Vector3(0, -90, 0);  
 
     void Update()
     {
@@ -72,20 +86,26 @@ public class FishController : MonoBehaviour
         Vector3 position = currentSplineContainer.EvaluatePosition(progress);
         transform.position = position;
 
-        Vector3 tangent = currentSplineContainer.EvaluateTangent(progress);
-        if (tangent != Vector3.zero)
+        if (shouldOrient)
         {
-            Quaternion splineRotation = Quaternion.LookRotation(tangent);
-            transform.rotation = splineRotation * Quaternion.Euler(additionalRotation);
+            Vector3 tangent = currentSplineContainer.EvaluateTangent(progress);
+            if (tangent != Vector3.zero)
+            {
+                Quaternion splineRotation = Quaternion.LookRotation(tangent);
+                transform.rotation = splineRotation * Quaternion.Euler(additionalRotation);
+            }
+        }
+        else
+        {
+            transform.rotation = Quaternion.Euler(additionalRotation);
         }
     }
 }
 
-
 public class FishRendererVisibility : MonoBehaviour
 {
     public Camera mainCamera;
-    public float renderDistance = 20f;  
+    public float renderDistance = 20f;
     private SpriteRenderer spriteRenderer;
 
     void Start()
@@ -103,15 +123,15 @@ public class FishRendererVisibility : MonoBehaviour
 
         float distanceToCamera = Vector3.Distance(mainCamera.transform.position, transform.position);
 
-        if (distanceToCamera <= renderDistance)
+        if (distanceToCamera > renderDistance)
         {
-            if (!spriteRenderer.enabled)
-                spriteRenderer.enabled = true;  
+            
+            spriteRenderer.enabled = false;
         }
         else
         {
-            if (spriteRenderer.enabled)
-                spriteRenderer.enabled = false;  
+            
+            spriteRenderer.enabled = true;
         }
     }
 }

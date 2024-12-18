@@ -28,9 +28,6 @@ public class PictureSwapper : MonoBehaviour
     public TextMeshProUGUI resistanceText;
     public TextMeshProUGUI powerText;
     public TextMeshProUGUI weightText;
-    public TextMeshProUGUI timerText; 
-    private float countdownTime = 120f; 
-    private bool timerRunning = false;
     public RectTransform speedBar;
     public RectTransform resistanceBar;
     private const float MaxBarWidth = 230f;
@@ -63,7 +60,6 @@ public class PictureSwapper : MonoBehaviour
         StartCoroutine(MoveUpAndDown());
 
         UpdateCombinedStats();
-        StartCountdown();
         StartCoroutine(UpdateTextCount(speedText, GetTotalSpeed()));
         StartCoroutine(UpdateTextCount(resistanceText, GetTotalResistance()));
         StartCoroutine(UpdateTextCount(powerText, GetTotalPower()));
@@ -261,59 +257,10 @@ public class PictureSwapper : MonoBehaviour
 
         bar.sizeDelta = new Vector2(targetWidth, bar.sizeDelta.y);
     }
-    public void StartCountdown()
-    {
-        if (!timerRunning)
-        {
-            timerRunning = true;
-            StartCoroutine(CountdownTimer());
-        }
-    }
-
-    private IEnumerator CountdownTimer()
-    {
-        float remainingTime = countdownTime;
-
-        while (remainingTime > 1)
-        {
-            remainingTime -= Time.deltaTime;
-
-            
-            int minutes = Mathf.FloorToInt(remainingTime / 60);
-            int seconds = Mathf.FloorToInt(remainingTime % 60);
-
-            
-            timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
-
-            
-            if (remainingTime <= 5f)
-            {
-                StartCoroutine(BlinkTimerText());
-            }
-
-            yield return null;
-        }
-
-        
-        StopAllCoroutines(); 
-        timerText.text = "00:01";
-
-        
-        yield return new WaitForSeconds(1f);
-        PlayGame();
-    }
-
-    private IEnumerator BlinkTimerText()
-    {
-        while (true)
-        {
-            timerText.enabled = !timerText.enabled; 
-            yield return new WaitForSeconds(0.5f); 
-        }
-    }
 
     public void PlayGame()
     {
+              Debug.Log("PlayGame method running");
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
 }
