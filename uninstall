@@ -1,0 +1,17 @@
+[33mcommit a683a5f8a16de91a1e449c525fd73aa448e2ee01[m
+Author: Jan-Frederik de Graaf <jan-frederik.de.graaf@student.howest.be>
+Date:   Tue Dec 17 21:56:19 2024 +0100
+
+    Remove large .mp4 files from repository
+
+[33mcommit a969ef0c47da308b162290973dc0c114397ca9e0[m
+Author: Jan-Frederik de Graaf <jan-frederik.de.graaf@student.howest.be>
+Date:   Tue Dec 17 21:41:59 2024 +0100
+
+    Track large .mp4 files using Git LFS
+
+[33mcommit 6365feac472b87a2b9ddbc3bcf68021e5b2a4b61[m
+Author: Jan-Frederik de Graaf <jan-frederik.de.graaf@student.howest.be>
+Date:   Mon Dec 16 19:11:41 2024 +0100
+
+    corruption haul
